@@ -6,8 +6,8 @@ app = Flask(__name__)
 @app.route('/')
 def home():
     return """
-    <h2>Servidor Flask activo ✅</h2>
-    <p>Haz clic <a href='/server_status'>aquí</a> para ver el estado del servidor.</p>
+    <h2>Panel de Servidor activo clase MTT612</h2>
+    <p>Ver detalle <a href='/server_status'>aquí</a>.</p>
     """
 
 @app.route('/server_status')
@@ -39,12 +39,13 @@ def server_status():
     html = f"""
     <h3>📊 Estado del Servidor</h3>
     <ul>
+      <li><b>Estado:</b> {estado}</li>
       <li><b>Hora:</b> {hora}</li>
       <li><b>Sistema:</b> {so}</li>
       <li><b>CPU:</b> {cpu}%</li>
       <li><b>Memoria:</b> {mem}%</li>
       <li><b>Disco:</b> {disco}%</li>
-      <li><b>Estado:</b> {estado}</li>
+      
     </ul>
     <p>JSON: <a href="/server_status_json">/server_status_json</a></p>
     """
@@ -69,3 +70,4 @@ def server_status_json():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
+
