@@ -1,27 +1,71 @@
-from flask import Flask, request, jsonify
-import psutil, requests
+from flask import Flask, jsonify
+import psutil, platform, datetime, requests
 
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "Servidor Flask activo ✅"
+    return """
+    <h2>Servidor Flask activo ✅</h2>
+    <p>Haz clic <a href='/server_status'>aquí</a> para ver el estado del servidor.</p>
+    """
 
 @app.route('/server_status')
 def server_status():
     cpu = psutil.cpu_percent(1)
     mem = psutil.virtual_memory().percent
-    estado = "OK" if cpu < 80 and mem < 80 else "ALERTA"
-    data = {"cpu": cpu, "memoria": mem, "estado": estado}
+    disco = psutil.disk_usage('/').percent
+    so = platform.system() + " " + platform.release()
+    hora = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Simula notificación a webhook (puedes usar https://webhook.site)
-    webhook_url = "https://webhook.site/1475dc15-e429-49f3-ab73-6057297fe772"
+    estado = "OK" if cpu < 80 and mem < 80 and disco < 90 else "ALERTA"
+
+    data = {
+        "hora": hora,
+        "sistema_operativo": so,
+        "cpu": cpu,
+        "memoria": mem,
+        "disco": disco,
+        "estado": estado
+    }
+
+    # enviar a webhook opcional
     try:
-        requests.post(webhook_url, json=data)
-    except Exception as e:
-        print("Error al notificar:", e)
+        requests.post("https://webhook.site/tu-url", json=data)
+    except:
+        pass
 
-    return jsonify(data)
+    # render HTML legible también
+    html = f"""
+    <h3>📊 Estado del Servidor</h3>
+    <ul>
+      <li><b>Hora:</b> {hora}</li>
+      <li><b>Sistema:</b> {so}</li>
+      <li><b>CPU:</b> {cpu}%</li>
+      <li><b>Memoria:</b> {mem}%</li>
+      <li><b>Disco:</b> {disco}%</li>
+      <li><b>Estado:</b> {estado}</li>
+    </ul>
+    <p>JSON: <a href="/server_status_json">/server_status_json</a></p>
+    """
+    return html
+
+@app.route('/server_status_json')
+def server_status_json():
+    cpu = psutil.cpu_percent(1)
+    mem = psutil.virtual_memory().percent
+    disco = psutil.disk_usage('/').percent
+    so = platform.system() + " " + platform.release()
+    hora = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    estado = "OK" if cpu < 80 and mem < 80 and disco < 90 else "ALERTA"
+    return jsonify({
+        "hora": hora,
+        "sistema_operativo": so,
+        "cpu": cpu,
+        "memoria": mem,
+        "disco": disco,
+        "estado": estado
+    })
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
